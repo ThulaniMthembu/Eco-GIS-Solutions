@@ -72,11 +72,12 @@ export default function Home() {
         const timer = setTimeout(() => {
           setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length)
         }, 8000) // Change video every 8 seconds
-        return () => clearTimeout(timer)
+        return () => clearTimeout(timer) // Cleanup function
       } else {
         currentVideo.pause()
       }
     }
+    return undefined
   }, [currentVideoIndex, isPlaying, videos.length])
 
   useEffect(() => {
@@ -122,7 +123,6 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    // Smooth scrolling
     const links = document.querySelectorAll('a[href^="#"]')
     links.forEach((link) => {
       link.addEventListener('click', (e) => {
@@ -222,7 +222,7 @@ export default function Home() {
                 ref={hamburgerRef}
                 onClick={toggleMenu}
                 className='inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white hover:bg-[rgba(70,97,71,255)] focus:outline-none transition-colors duration-300'
-                aria-expanded='false'
+                aria-expanded={isMenuOpen}
               >
                 <span className='sr-only'>Open main menu</span>
                 {isMenuOpen ? (
@@ -243,6 +243,7 @@ export default function Home() {
             <button
               onClick={toggleMenu}
               className='absolute top-4 right-4 text-white'
+              aria-label='Close menu'
             >
               <XIcon className='h-8 w-8' />
             </button>
@@ -368,7 +369,7 @@ export default function Home() {
               <h2 className='text-base text-green-600 font-semibold tracking-wide uppercase'>
                 Services
               </h2>
-              <p className='mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl'>
+              <p className='mt-2 text-3xl leading-8 font-ext rabold tracking-tight text-gray-900 sm:text-4xl'>
                 Our Expertise
               </p>
               <p className='mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto leading-relaxed'>
