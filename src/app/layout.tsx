@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_ZA',
-    url: 'https://namaqualandenv.vercel.app/',
+    url: 'https://www.namaquaenvironmental.co.za/',
     siteName: 'Namaqualand Environmental',
     title: 'Namaqualand Environmental | Sustainable GIS Solutions',
     description: 'Leading provider of environmental services and GIS technology solutions in South Africa. Specializing in sustainable practices and innovative geospatial analysis.',

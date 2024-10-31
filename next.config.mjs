@@ -30,6 +30,24 @@ const nextConfig = {
 					},
 				],
 			},
+			{
+				source: '/manifest.json',
+				headers: [
+					{
+						key: 'Content-Type',
+						value: 'application/manifest+json',
+					},
+				],
+			},
+			{
+				source: '/sitemap.xml',
+				headers: [
+					{
+						key: 'Content-Type',
+						value: 'application/xml',
+					},
+				],
+			},
 		];
 	},
 	poweredByHeader: false,
