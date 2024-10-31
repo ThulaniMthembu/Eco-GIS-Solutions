@@ -21,7 +21,17 @@ export const metadata: Metadata = {
     'Environmental Mapping',
     'Sustainability',
     'South Africa',
-    'Namaqualand'
+    'Namaqualand',
+    'Environmental Impact Assessment',
+    'Biodiversity Conservation',
+    'Remote Sensing',
+    'Natural Resource Management',
+    'Environmental Monitoring',
+    'Sustainable Development',
+    'Climate Change Adaptation',
+    'Environmental Policy',
+    'Ecosystem Services',
+    'Environmental Education'
   ],
   authors: [{ name: 'Namaqualand Environmental' }],
   creator: 'Namaqualand Environmental Team',
@@ -64,6 +74,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  verification: {
+    google: 'google523f418b1738107c',
+  },
 }
 
 export default function RootLayout({
@@ -73,6 +86,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="google-site-verification" content="google523f418b1738107c" />
+      </head>
       <body className={inter.className}>{children}</body>
     </html>
   )
