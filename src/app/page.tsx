@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
@@ -31,6 +31,7 @@ import {
 import { gsap } from 'gsap'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import emailjs from '@emailjs/browser'
 
 gsap.registerPlugin(ScrollToPlugin)
 
@@ -38,6 +39,13 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(true)
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: '',
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null)
 
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
   const servicesRef = useRef<HTMLDivElement>(null)
@@ -120,20 +128,29 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    const links = document.querySelectorAll('a[href^="#"]')
+    const links = document.querySelectorAll('a')
     links.forEach((link) => {
       link.addEventListener('click', (e) => {
-        e.preventDefault()
         const href = (e.currentTarget as HTMLAnchorElement).getAttribute('href')
-        if (href && href !== '#') {
-          const target = document.querySelector(href)
-          if (target) {
-            gsap.to(window, {
-              duration: 1,
-              scrollTo: target,
-              ease: 'power2.inOut',
-            })
+        if (href) {
+          if (href.startsWith('#')) {
+            // Internal anchor link
+            e.preventDefault()
+            const targetId = href.substring(1)
+            const target = document.getElementById(targetId)
+            if (target) {
+              gsap.to(window, {
+                duration: 1,
+                scrollTo: target,
+                ease: 'power2.inOut',
+              })
+            }
+          } else if (href.startsWith('http') || href.startsWith('https')) {
+            // External link
+            // Let the default behavior handle it (opening in a new tab if target="_blank" is set)
+            return
           }
+          // If it's neither an anchor link nor an external link, let the default behavior handle it
         }
       })
     })
@@ -161,6 +178,41 @@ export default function Home() {
       scrollTo: 0,
       ease: 'power2.inOut',
     })
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setSubmitStatus(null)
+
+    try {
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+        {
+          from_name: formData.name,
+          from_email: formData.email,
+          message: formData.message,
+          to_email: 'namaquaenvironmental@gmail.com', // Add the recipient email here
+        },
+        process.env.NEXT_PUBLIC_EMAILJS_USER_ID
+      )
+      setSubmitStatus('success')
+      setFormData({ name: '', email: '', message: '' })
+    } catch (error) {
+      console.error('Error sending email:', error)
+      setSubmitStatus('error')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const lineVariants = {
@@ -349,7 +401,7 @@ export default function Home() {
       <main className='flex-grow pt-20'>
         <section className='relative bg-gray-900 h-screen'>
           <div className='absolute inset-0 overflow-hidden'>
-            {videos.map((video, index) => (
+            {videos.map((video,    index) => (
               <div
                 key={index}
                 className={`absolute inset-0 transition-opacity duration-1000 ${
@@ -398,8 +450,7 @@ export default function Home() {
                       <div className='space-y-4 sm:space-y-0 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5'>
                         <Link
                           href='#contact'
-                          className='flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounde
-d-md shadow-sm text-gray-900 bg-green-400 hover:bg-green-500 sm:px-8 transition-all duration-300 ease-in-out'
+                          className='flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-gray-900 bg-green-400 hover:bg-green-500 sm:px-8 transition-all duration-300 ease-in-out'
                         >
                           Get started
                         </Link>
@@ -708,7 +759,7 @@ d-md shadow-sm text-gray-900 bg-green-400 hover:bg-green-500 sm:px-8 transition-
                     <h3 className='text-2xl font-semibold text-gray-900 mb-6'>
                       Contact Us
                     </h3>
-                    <form className='space-y-6'>
+                    <form className='space-y-6' onSubmit={handleSubmit}>
                       <div>
                         <label
                           className='block text-sm font-medium text-gray-700'
@@ -721,6 +772,8 @@ d-md shadow-sm text-gray-900 bg-green-400 hover:bg-green-500 sm:px-8 transition-
                           type='text'
                           id='name'
                           name='name'
+                          value={formData.name}
+                          onChange={handleChange}
                           required
                         />
                       </div>
@@ -736,6 +789,8 @@ d-md shadow-sm text-gray-900 bg-green-400 hover:bg-green-500 sm:px-8 transition-
                           type='email'
                           id='email'
                           name='email'
+                          value={formData.email}
+                          onChange={handleChange}
                           required
                         />
                       </div>
@@ -751,18 +806,27 @@ d-md shadow-sm text-gray-900 bg-green-400 hover:bg-green-500 sm:px-8 transition-
                           id='message'
                           name='message'
                           rows={4}
+                          value={formData.message}
+                          onChange={handleChange}
                           required
                         ></textarea>
                       </div>
                       <div>
                         <button
                           type='submit'
-                          className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-300'
+                          disabled={isSubmitting}
+                          className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-300 disabled:opacity-50'
                         >
-                          Send Message
+                          {isSubmitting ? 'Sending...' : 'Send Message'}
                         </button>
                       </div>
                     </form>
+                    {submitStatus === 'success' && (
+                      <p className="mt-4 text-green-600">Message sent successfully!</p>
+                    )}
+                    {submitStatus === 'error' && (
+                                            <p className="mt-4 text-red-600">Failed to send message. Please try again.</p>
+                    )}
                   </div>
                 </motion.div>
                 <motion.div className='md:w-1/2' variants={slideInUp}>
@@ -788,7 +852,7 @@ d-md shadow-sm text-gray-900 bg-green-400 hover:bg-green-500 sm:px-8 transition-
                       </p>
                       <p className='flex items-center text-gray-600'>
                         <UserIcon className='h-5 w-5 text-green-500 mr-2' />
-                        Ndlelenhle Zondi - CEO
+                        Ndlelenhle Zondi - Managing Director
                       </p>
                       <p className='flex items-center text-gray-600'>
                         <PhoneIcon className='h-5 w-5 text-green-500 mr-2' />
@@ -800,7 +864,7 @@ d-md shadow-sm text-gray-900 bg-green-400 hover:bg-green-500 sm:px-8 transition-
                       </p>
                       <p className='flex items-center text-gray-600'>
                         <MailIcon className='h-5 w-5 text-green-500 mr-2' />
-                        info@namaqualand.com
+                        namaquaenvironmental@gmail.com
                       </p>
                     </div>
                   </div>
@@ -825,7 +889,7 @@ d-md shadow-sm text-gray-900 bg-green-400 hover:bg-green-500 sm:px-8 transition-
                 </li>
                 <li className='flex items-center'>
                   <UserIcon className='h-6 w-6 text-green-400 mr-2' />
-                  <span>Ndlelenhle Zondi - CEO</span>
+                  <span>Ndlelenhle Zondi - Managing Director</span>
                 </li>
                 <li className='flex items-center'>
                   <PhoneIcon className='h-6 w-6 text-green-400 mr-2' />
@@ -837,7 +901,7 @@ d-md shadow-sm text-gray-900 bg-green-400 hover:bg-green-500 sm:px-8 transition-
                 </li>
                 <li className='flex items-center'>
                   <MailIcon className='h-6 w-6 text-green-400 mr-2' />
-                  <span>info@namaqualand.com</span>
+                  <span>namaquaenvironmental@gmail.com</span>
                 </li>
               </ul>
             </div>
@@ -903,40 +967,10 @@ d-md shadow-sm text-gray-900 bg-green-400 hover:bg-green-500 sm:px-8 transition-
           <div className='mt-8 border-t border-[rgba(70,97,71,255)] pt-8 md:flex md:items-center md:justify-between'>
             <div className='flex space-x-6 md:order-2'>
               <a
-                href='#'
+                href='https://www.linkedin.com/in/ndlelenhle-zondi-3a5848245/'
                 className='text-gray-400 hover:text-gray-300 transition duration-300'
-              >
-                <span className='sr-only'>Facebook</span>
-                <svg
-                  className='h-6 w-6'
-                  fill='currentColor'
-                  viewBox='0 0 24 24'
-                  aria-hidden='true'
-                >
-                  <path
-                    fillRule='evenodd'
-                    d='M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z'
-                    clipRule='evenodd'
-                  />
-                </svg>
-              </a>
-              <a
-                href='#'
-                className='text-gray-400 hover:text-gray-300 transition duration-300'
-              >
-                <span className='sr-only'>Twitter</span>
-                <svg
-                  className='h-6 w-6'
-                  fill='currentColor'
-                  viewBox='0 0 24 24'
-                  aria-hidden='true'
-                >
-                  <path d='M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84' />
-                </svg>
-              </a>
-              <a
-                href='#'
-                className='text-gray-400 hover:text-gray-300 transition duration-300'
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <span className='sr-only'>LinkedIn</span>
                 <svg
