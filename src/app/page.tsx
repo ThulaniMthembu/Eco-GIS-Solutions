@@ -42,6 +42,7 @@ export default function Home() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     message: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -200,13 +201,14 @@ export default function Home() {
         {
           from_name: formData.name,
           from_email: formData.email,
+          phone: formData.phone,
           message: formData.message,
-          to_email: 'namaquaenvironmental@gmail.com', // Add the recipient email here
+          to_email: 'namaquaenvironmental@gmail.com',
         },
         process.env.NEXT_PUBLIC_EMAILJS_USER_ID
       )
       setSubmitStatus('success')
-      setFormData({ name: '', email: '', message: '' })
+      setFormData({ name: '', email: '', phone: '', message: '' })
     } catch (error) {
       console.error('Error sending email:', error)
       setSubmitStatus('error')
@@ -790,6 +792,23 @@ export default function Home() {
                           id='email'
                           name='email'
                           value={formData.email}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          className='block text-sm font-medium text-gray-700'
+                          htmlFor='phone'
+                        >
+                          Phone Number
+                        </label>
+                        <input
+                          className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500'
+                          type='tel'
+                          id='phone'
+                          name='phone'
+                          value={formData.phone}
                           onChange={handleChange}
                           required
                         />
